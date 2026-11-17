@@ -1,0 +1,43 @@
+name: Build hacPack (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            zip
+            mingw-w64-x86_64-gcc
+
+      - name: Build
+        run: |
+          cp config.mk.template config.mk
+          make -j$(nproc)
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          if [ -f hacpack.exe ]; then cp hacpack.exe dist/; else cp hacpack dist/hacpack.exe; fi
+          ldd dist/hacpack.exe | grep -i mingw64 | awk '{print $3}' | xargs -r -I{} cp "{}" dist/
+          cp README.md LICENSE dist/
+          cd dist && zip -r ../hacpack-windows-x64.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hacpack-windows-x64
+          path: hacpack-windows-x64.zip
