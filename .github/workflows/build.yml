@@ -31,9 +31,10 @@ jobs:
 
       - name: Package
         run: |
+          ls -la
           mkdir -p dist
           if [ -f hacpack.exe ]; then cp hacpack.exe dist/; else cp hacpack dist/hacpack.exe; fi
-          ldd dist/hacpack.exe | grep -i mingw64 | awk '{print $3}' | xargs -r -I{} cp "{}" dist/
+          ldd dist/hacpack.exe | grep -i mingw64 | awk '{print $3}' | xargs -r -I{} cp "{}" dist/ || true
           cp README.md LICENSE dist/
           cd dist && zip -r ../hacpack-windows-x64.zip .
 
